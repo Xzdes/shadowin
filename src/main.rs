@@ -24,24 +24,30 @@ pub struct AppState {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let font_data = include_bytes!("../assets/font.ttf");
     let font = Font::try_from_bytes(font_data).ok_or("Failed to load font")?;
+
     let event_loop = EventLoop::new()?;
     event_loop.set_control_flow(ControlFlow::Poll);
+
     let window = Arc::new({
         let size = LogicalSize::new(WIDTH as f64, HEIGHT as f64);
         let attributes = Window::default_attributes().with_title("Shadowin").with_inner_size(size);
         event_loop.create_window(attributes)?
     });
+
     let mut pixels = {
         let window_size = window.inner_size();
         let surface_texture = SurfaceTexture::new(window_size.width, window_size.height, window.as_ref());
         pollster::block_on(Pixels::new_async(WIDTH, HEIGHT, surface_texture))?
     };
+
     let mut ui = Ui::new(&font);
+    
     let mut app_state = AppState {
         mouse_pos: (0.0, 0.0).into(),
         mouse_pressed: false,
         message: "Enter command and press Submit".to_string(),
     };
+
     let window_clone = Arc::clone(&window);
 
     event_loop.run(move |event, elwt| {
@@ -66,19 +72,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     if key_event.logical_key == Key::Named(NamedKey::Escape) { elwt.exit(); }
                     ui.handle_key_event(&key_event);
                 }
-                
-                // ---- ИСПРАВЛЕНИЕ 2 ----
                 WindowEvent::Ime(Ime::Commit(text)) => {
-                    // Передаем всю строку целиком
                     ui.text_input.key_press(&text);
-                },
-                // ---------------------
-                
+                }
                 WindowEvent::Resized(size) => { if let Err(_err) = pixels.resize_surface(size.width, size.height) { elwt.exit(); } }
+                
                 WindowEvent::RedrawRequested => {
                     let frame = pixels.frame_mut();
                     for pixel in frame.chunks_exact_mut(4) { pixel.copy_from_slice(&[20, 20, 30, 255]); }
+                    
+                    // ---- ИСПРАВЛЕНИЕ ЗДЕСЬ ----
                     ui.draw(&app_state, frame, WIDTH);
+                    // -----------------------
+                    
                     if let Err(_err) = pixels.render() { elwt.exit(); }
                 }
                 _ => (),

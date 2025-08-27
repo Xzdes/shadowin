@@ -1,0 +1,10 @@
+[package]
+name = "shadowin"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+winit = "0.30"
+pixels = "0.15"
+pollster = "0.3"
+rusttype = "0.9"

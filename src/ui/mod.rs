@@ -22,6 +22,7 @@ impl<'a> Ui<'a> {
         ];
         let text_panel = TextPanel::new(50, 200, font);
         let text_input = TextInput::new(50, 130, 370, 40, font);
+        
         Self { buttons, text_panel, text_input }
     }
 
@@ -32,11 +33,13 @@ impl<'a> Ui<'a> {
                 return Some(button.id);
             }
         }
+        
         if self.text_input.is_over(mouse_pos) {
             self.text_input.is_focused = true;
         } else {
             self.text_input.is_focused = false;
         }
+        
         None
     }
 
@@ -46,18 +49,33 @@ impl<'a> Ui<'a> {
         }
     }
 
+    // ---- ПОЛНОСТЬЮ ПЕРЕПИСАННЫЙ МЕТОД ----
     pub fn handle_key_event(&mut self, key_event: &KeyEvent) {
-        if !self.text_input.is_focused || !key_event.state.is_pressed() {
+        // Если поле ввода не в фокусе, ничего не делаем
+        if !self.text_input.is_focused {
             return;
         }
-        if let Key::Named(NamedKey::Backspace) = key_event.logical_key {
-            self.text_input.backspace();
+        
+        // Обрабатываем только НАЖАТИЯ клавиш
+        if key_event.state.is_pressed() {
+            match &key_event.logical_key {
+                // Если это Backspace, стираем символ
+                Key::Named(NamedKey::Backspace) => {
+                    self.text_input.backspace();
+                }
+                // Если это вводимый символ (буква, цифра, знак)
+                Key::Character(chars) => {
+                    // `chars` - это уже готовая строка, которую нужно вставить
+                    self.text_input.key_press(chars);
+                }
+                // Все остальные клавиши (Shift, Ctrl и т.д.) игнорируем
+                _ => (),
+            }
         }
     }
+    // ------------------------------------
 
-    // ---- И ИСПРАВЛЕНИЕ ЗДЕСЬ ----
     pub fn draw(&mut self, app_state: &AppState, frame: &mut [u8], screen_width: u32) {
-    // ----------------------------
         for button in &self.buttons {
             button.draw(frame, screen_width);
         }

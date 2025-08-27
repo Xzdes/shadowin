@@ -3,7 +3,7 @@
 use pixels::{Pixels, SurfaceTexture};
 use std::sync::Arc;
 use winit::dpi::{LogicalSize, PhysicalPosition};
-use winit::event::{Event, MouseButton, WindowEvent, ElementState, Ime};
+use winit::event::{Event, MouseButton, WindowEvent, ElementState}; // Убираем Ime
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::keyboard::{Key, NamedKey};
 use winit::window::Window;
@@ -55,40 +55,50 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::CloseRequested => elwt.exit(),
                 WindowEvent::CursorMoved { position, .. } => { app_state.mouse_pos = position; }
+                
                 WindowEvent::MouseInput { state: ElementState::Released, button: MouseButton::Left, .. } => {
                     let mouse_in_buffer = pixels.window_pos_to_pixel(app_state.mouse_pos.into()).ok().map(|(x, y)| (x as i32, y as i32)).unwrap_or((-1, -1));
+                    
                     if let Some(clicked_id) = ui.handle_click(mouse_in_buffer) {
                         match clicked_id {
                             0 => app_state.message = format!("Submitted: {}", ui.text_input.text),
-                            1 => { ui.text_input.text.clear(); app_state.message = "Cleared.".to_string(); },
+                            1 => {
+                                ui.text_input.text.clear();
+                                app_state.message = "Cleared.".to_string();
+                            },
                             _ => {}
                         }
                     }
                 }
+                
                 WindowEvent::MouseInput { state, button: MouseButton::Left, .. } => {
                     app_state.mouse_pressed = state == ElementState::Pressed;
                 }
+
+                // ---- ИСПРАВЛЕНИЕ ЗДЕСЬ: Оставляем ТОЛЬКО KeyboardInput ----
                 WindowEvent::KeyboardInput { event: key_event, .. } => {
                     if key_event.logical_key == Key::Named(NamedKey::Escape) { elwt.exit(); }
+                    // Просто передаем событие в UI, вся логика теперь там
                     ui.handle_key_event(&key_event);
+                },
+                // Событие Ime было удалено.
+                // ---------------------------------------------------------
+                
+                WindowEvent::Resized(size) => {
+                    if let Err(_err) = pixels.resize_surface(size.width, size.height) { elwt.exit(); }
                 }
-                WindowEvent::Ime(Ime::Commit(text)) => {
-                    ui.text_input.key_press(&text);
-                }
-                WindowEvent::Resized(size) => { if let Err(_err) = pixels.resize_surface(size.width, size.height) { elwt.exit(); } }
                 
                 WindowEvent::RedrawRequested => {
                     let frame = pixels.frame_mut();
-                    for pixel in frame.chunks_exact_mut(4) { pixel.copy_from_slice(&[20, 20, 30, 255]); }
-                    
-                    // ---- ИСПРАВЛЕНИЕ ЗДЕСЬ ----
+                    for pixel in frame.chunks_exact_mut(4) {
+                        pixel.copy_from_slice(&[20, 20, 30, 255]);
+                    }
                     ui.draw(&app_state, frame, WIDTH);
-                    // -----------------------
-                    
                     if let Err(_err) = pixels.render() { elwt.exit(); }
                 }
                 _ => (),
             },
+            
             Event::AboutToWait => {
                 let mouse_in_buffer = pixels.window_pos_to_pixel(app_state.mouse_pos.into()).ok().map(|(x, y)| (x as i32, y as i32)).unwrap_or((-1, -1));
                 ui.update_visuals(mouse_in_buffer, app_state.mouse_pressed);

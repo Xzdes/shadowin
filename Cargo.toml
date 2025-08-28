@@ -8,3 +8,16 @@ winit = "0.30"
 pixels = "0.15"
 pollster = "0.3"
 rusttype = "0.9"
+
+# --- НОВЫЕ ИНСТРУМЕНТЫ ДЛЯ AI ---
+# Tokio - для асинхронных операций (чтобы UI не зависал)
+tokio = { version = "1", features = ["full"] }
+# Reqwest - для отправки HTTP запросов к Stable Diffusion
+reqwest = { version = "0.12", features = ["json"] }
+# Serde - для работы с JSON
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+# Base64 - для декодирования ответа с картинкой
+base64 = "0.22"
+# Image - для работы с пикселями картинки
+image = "0.25"

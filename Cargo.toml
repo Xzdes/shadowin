@@ -3,21 +3,25 @@ name = "shadowin"
 version = "0.1.0"
 edition = "2021"
 
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
 [dependencies]
+# Для окон и событий
 winit = "0.30"
+# Для рисования пикселей
 pixels = "0.15"
+# Помощник для инициализации графики
 pollster = "0.3"
+# Для рендеринга текста
 rusttype = "0.9"
 
-# --- НОВЫЕ ИНСТРУМЕНТЫ ДЛЯ AI ---
-# Tokio - для асинхронных операций (чтобы UI не зависал)
-tokio = { version = "1", features = ["full"] }
-# Reqwest - для отправки HTTP запросов к Stable Diffusion
-reqwest = { version = "0.12", features = ["json"] }
-# Serde - для работы с JSON
+# --- Инструменты для AI-Рендерера ---
+# Для отправки СИНХРОННЫХ HTTP запросов к Stable Diffusion
+reqwest = { version = "0.12", features = ["json", "blocking"] }
+# Для работы с JSON (сериализация/десериализация)
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-# Base64 - для декодирования ответа с картинкой
+# Для декодирования ответа с картинкой из Base64
 base64 = "0.22"
-# Image - для работы с пикселями картинки
+# Для работы с пикселями картинки
 image = "0.25"
